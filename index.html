@@ -213,8 +213,13 @@ var d=Object.fromEntries(new FormData(f));
 d.access_key=KEY;d.subject='New enquiry from Shivara website';
 b.disabled=true;ok.textContent='Sending...';
 fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(d)})
-.then(function(r){return r.json()})
-.then(function(r){ok.textContent=r.success?'Thank you! We will get back to you soon.':'Something went wrong. Please email us directly.';if(r.success)f.reset()})
+.then(function(r){if(!r.ok)throw new Error('Request failed');return r.json()})
+.then(function(r){
+if(!r.success)throw new Error('Enquiry not accepted');
+f.reset();
+try{sessionStorage.setItem('shivara_lead_submitted',String(Date.now()))}catch(e){}
+window.location.assign('/thank-you');
+})
 .catch(function(){ok.textContent='Something went wrong. Please email us directly.'})
 .finally(function(){b.disabled=false});
 });
